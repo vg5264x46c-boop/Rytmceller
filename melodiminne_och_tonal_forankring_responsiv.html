@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Melodiminne och tonal förankring 1–7</title>
+<style>
+  body{
+    margin:0;
+    background:#f4f4f4;
+    font-family:Arial,sans-serif;
+    color:#111;
+    padding:clamp(8px,2vw,24px);
+    box-sizing:border-box;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  .app{
+    width:min(100%,1200px);
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:minmax(220px,300px) minmax(0,1fr);
+    gap:clamp(12px,2vw,24px);
+    align-items:start;
+  }
+
+  .panel,.stage{
+    background:white;
+    border-radius:clamp(12px,2vw,18px);
+    box-shadow:0 8px 24px rgba(0,0,0,.14);
+    padding:clamp(12px,2vw,18px);
+  }
+
+  .panel{
+    position:sticky;
+    top:clamp(8px,2vw,20px);
+  }
+
+  .stage{
+    min-width:0;
+    overflow:hidden;
+  }
+
+  h1{
+    font-size:clamp(20px,2.2vw,24px);
+    margin:0 0 8px;
+  }
+
+  p{
+    color:#555;
+    line-height:1.45;
+  }
+
+  label{
+    display:block;
+    margin-top:14px;
+    font-weight:bold;
+  }
+
+  select,button{
+    width:100%;
+    margin-top:8px;
+    box-sizing:border-box;
+  }
+
+  button{
+    padding:clamp(9px,1.4vw,12px);
+    border:2px solid #111;
+    background:white;
+    border-radius:12px;
+    font-size:clamp(14px,1.45vw,16px);
+    font-weight:bold;
+    cursor:pointer;
+  }
+
+  button:hover{
+    background:#111;
+    color:white;
+  }
+
+  .primary{
+    background:#111;
+    color:white;
+  }
+
+  .primary:hover{
+    background:white;
+    color:#111;
+  }
+
+  .numberGrid{
+    --step-size: clamp(44px, 7vw, 86px);
+    --step-gap: clamp(6px, 1.2vw, 14px);
+    --step-rise: clamp(11px, 2.2vw, 22px);
+
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap:var(--step-gap);
+    margin-top:clamp(22px,4vw,40px);
+    min-height:calc(var(--step-size) + (8 * var(--step-rise)) + 20px);
+    padding-top:10px;
+    overflow:visible;
+  }
+
+  .numBtn{
+    width:var(--step-size);
+    height:var(--step-size);
+    border-radius:clamp(12px,2vw,18px);
+    border:clamp(2px,0.35vw,3px) solid #111;
+    background:white;
+    font-size:clamp(18px,3.4vw,40px);
+    font-weight:bold;
+    cursor:pointer;
+    transition:all .14s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+  }
+
+  .numBtn:hover{
+    background:#111;
+    color:white;
+    transform:scale(1.05);
+  }
+
+  .answerRow{
+    display:flex;
+    gap:clamp(6px,1vw,10px);
+    flex-wrap:wrap;
+    margin-top:clamp(18px,3vw,24px);
+  }
+
+  .pill{
+    border-radius:999px;
+    border:1px solid #ccc;
+    background:#fafafa;
+    padding:clamp(7px,1.2vw,10px) clamp(10px,1.8vw,14px);
+    font-size:clamp(15px,2.2vw,20px);
+    font-weight:bold;
+  }
+
+  .result{
+    margin-top:18px;
+    padding:14px;
+    border-radius:12px;
+    background:#f3f3f3;
+    min-height:28px;
+    font-weight:bold;
+  }
+
+  .credit{
+    font-size:12px;
+    font-style:italic;
+    color:#666;
+    text-align:center;
+    margin-top:10px;
+  }
+
+  @media(max-width:820px){
+    .app{
+      grid-template-columns:1fr;
+    }
+
+    .panel{
+      position:static;
+    }
+
+    .numberGrid{
+      --step-size: clamp(38px, 10vw, 68px);
+      --step-gap: clamp(4px, 1vw, 8px);
+      --step-rise: clamp(8px, 2.2vw, 16px);
+    }
+  }
+
+  @media(max-width:430px){
+    .numberGrid{
+      justify-content:flex-start;
+      overflow-x:auto;
+      padding-bottom:10px;
+      padding-left:4px;
+      padding-right:4px;
+    }
+
+    .numBtn{
+      min-width:46px;
+      min-height:46px;
+    }
+  }
+
+  @media(max-height:700px) and (min-width:821px){
+    .app{
+      grid-template-columns:minmax(200px,260px) minmax(0,1fr);
+    }
+
+    .numberGrid{
+      --step-size: clamp(42px, 6.2vw, 72px);
+      --step-rise: clamp(9px, 1.8vw, 18px);
+    }
+  }
+</style>
+</head>
+<body>
+
+<main class="app">
+
+<section class="panel">
+
+<h1>Melodiminne och tonal förankring</h1>
+
+<p>
+Lyssna på melodin och klicka sedan in rätt tonplatser 1–7 i samma ordning.
+</p>
+
+<label for="length">Antal toner</label>
+<select id="length">
+  <option value="3">3 toner</option>
+  <option value="5" selected>5 toner</option>
+  <option value="7">7 toner</option>
+  <option value="9">9 toner</option>
+  <option value="12">12 toner</option>
+</select>
+
+
+
+
+
+<select id="tonic" style="display:none;">
+  <option value="C4" selected>C</option>
+  <option value="C#4">C# / Db</option>
+  <option value="D4">D</option>
+  <option value="Eb4">Eb</option>
+  <option value="E4">E</option>
+  <option value="F4">F</option>
+  <option value="F#4">F# / Gb</option>
+  <option value="G4">G</option>
+  <option value="Ab4">Ab</option>
+  <option value="A4">A</option>
+  <option value="Bb4">Bb</option>
+  <option value="B4">B</option>
+</select>
+
+<button id="randomTonic">Slumpa fram ny grundton</button>
+
+<label for="motion">Melodityp</label>
+<select id="motion">
+  <option value="onlyStep" selected>Endast stegvis</option>
+  <option value="mostlyStep">Mestadels stegvis</option>
+  <option value="mostlyLeap">Mestadels språng</option>
+  <option value="onlyLeap">Endast språng</option>
+</select>
+
+
+<label for="tempo">Tempo: <span id="tempoValue">72</span> BPM</label>
+<input type="range" id="tempo" min="40" max="140" value="72">
+
+<button class="primary" id="newMelody">Ny melodi</button>
+<button id="playMelody">Spela melodi</button>
+<button id="playTonic">Spela grundtonen</button>
+<button id="playAnswer">Spela mitt svar</button>
+
+<button id="check">Kontrollera</button>
+<button id="clear">Rensa svar</button>
+
+<div class="result" id="result">
+Klicka på “Ny melodi”.
+</div>
+
+<p class="credit">Marcus Löfdahl 2026 (skapad med AI)</p>
+
+</section>
+
+<section class="stage">
+
+<div class="numberGrid" id="grid"></div>
+
+<div class="answerRow" id="answerRow"></div>
+
+
+
+</section>
+
+</main>
+
+<script>
+
+const grid = document.getElementById("grid");
+const answerRow = document.getElementById("answerRow");
+const result = document.getElementById("result");
+
+const lengthSel = document.getElementById("length");
+const motionSel = document.getElementById("motion");
+const tempoSlider = document.getElementById("tempo");
+const tempoValue = document.getElementById("tempoValue");
+const tonicSelect = document.getElementById("tonic");
+
+let audioCtx = null;
+
+const tonicFreqs = {
+  "C4":261.63,
+  "C#4":277.18,
+  "D4":293.66,
+  "Eb4":311.13,
+  "E4":329.63,
+  "F4":349.23,
+  "F#4":369.99,
+  "G4":392.00,
+  "Ab4":415.30,
+  "A4":440.00,
+  "Bb4":466.16,
+  "B4":493.88
+};
+
+// utökat omfång:
+// låg 7 under grundtonen + vanlig durtonskala + hög 1
+const scaleDegrees = [
+  {label:"7_", semi:-1},
+  {label:"1", semi:0},
+  {label:"2", semi:2},
+  {label:"3", semi:4},
+  {label:"4", semi:5},
+  {label:"5", semi:7},
+  {label:"6", semi:9},
+  {label:"7", semi:11},
+  {label:"1^", semi:12}
+];
+
+function currentTones(){
+
+  const tonic = tonicFreqs[tonicSelect.value];
+
+  return scaleDegrees.map((d)=>({
+    n:d.label,
+    f: tonic * Math.pow(2, d.semi/12)
+  }));
+}
+
+let target = [];
+let answer = [];
+
+
+function ensureAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playTone(freq,dur=0.72,delay=0){
+  ensureAudio();
+
+  const t = audioCtx.currentTime + delay;
+
+  // huvudton
+  const osc1 = audioCtx.createOscillator();
+
+  // svag överton för varmare klang
+  const osc2 = audioCtx.createOscillator();
+
+  const gain = audioCtx.createGain();
+
+  osc1.type = "triangle";
+  osc2.type = "sine";
+
+  osc1.frequency.value = freq;
+  osc2.frequency.value = freq * 2;
+
+  gain.gain.setValueAtTime(0.0001,t);
+
+  // mjuk pianoliknande attack
+  gain.gain.linearRampToValueAtTime(0.14,t+0.08);
+
+  // långsam avklingning
+  gain.gain.linearRampToValueAtTime(0.12,t+dur*0.78);
+
+  // mycket mjuk release för mer legato
+  gain.gain.exponentialRampToValueAtTime(0.0001,t+dur*1.08);
+
+  osc1.connect(gain);
+
+  // överton mycket svagare
+  const overtoneGain = audioCtx.createGain();
+  overtoneGain.gain.value = 0.18;
+
+  osc2.connect(overtoneGain);
+  overtoneGain.connect(gain);
+
+  gain.connect(audioCtx.destination);
+
+  osc1.start(t);
+  osc2.start(t);
+
+  osc1.stop(t+dur+0.05);
+  osc2.stop(t+dur+0.05);
+}
+
+function playSequence(seq){
+
+  const bpm = Number(tempoSlider.value);
+
+  // fjärdedel i sekunder
+  const beat = 60 / bpm;
+
+  // lite overlap för legato
+  const spacing = beat * 0.85;
+
+  // tonlängd längre än spacing
+  const duration = beat * 1.08;
+
+  seq.forEach((x,i)=>{
+    playTone(x.f,duration,i*spacing);
+  });
+}
+
+function randomChoice(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function makeMelody(){
+
+  const len = Number(lengthSel.value);
+
+  target = [];
+
+  const tones = currentTones();
+
+  let idx = Math.floor(Math.random()*tones.length);
+
+  target.push(tones[idx]);
+
+  for(let i=1;i<len;i++){
+
+    if(motionSel.value === "onlyStep"){
+
+      const opts = [idx-1,idx+1]
+        .filter(x=>x>=0 && x<tones.length);
+
+      idx = randomChoice(opts);
+
+    } else if(motionSel.value === "mostlyStep"){
+
+      const useStep = Math.random() < 0.75;
+
+      const opts = (useStep ? [idx-1,idx+1] : [idx-3,idx-2,idx+2,idx+3])
+        .filter(x=>x>=0 && x<tones.length);
+
+      idx = randomChoice(opts.length ? opts : [idx]);
+
+    } else if(motionSel.value === "mostlyLeap") {
+
+      const useLeap = Math.random() < 0.75;
+
+      const opts = (useLeap ? [idx-4,idx-3,idx-2,idx+2,idx+3,idx+4] : [idx-1,idx+1])
+        .filter(x=>x>=0 && x<tones.length);
+
+      idx = randomChoice(opts.length ? opts : [idx]);
+
+    } else {
+
+      const opts = [idx-4,idx-3,idx-2,idx+2,idx+3,idx+4]
+        .filter(x=>x>=0 && x<tones.length);
+
+      idx = randomChoice(opts.length ? opts : [idx]);
+    }
+
+    target.push(tones[idx]);
+  }
+
+  answer = [];
+
+  drawAnswer();
+  buildGrid();
+
+  result.textContent = "Lyssna och klicka sedan in melodin.";
+
+  
+  playSequence(target);
+}
+
+function addAnswer(t){
+
+  if(answer.length >= target.length) return;
+
+  answer.push(t);
+
+  playTone(t.f,0.22);
+
+  drawAnswer();
+}
+
+function drawAnswer(){
+
+  answerRow.innerHTML = "";
+
+  answer.forEach((t,i)=>{
+
+    const div = document.createElement("div");
+
+    div.className = "pill";
+
+    if(t.n === "7_"){
+      div.innerHTML = (i+1) + ': <span style="display:inline-flex; flex-direction:column; align-items:center; line-height:1; vertical-align:middle;"><span>7</span><span style="font-size:0.7em; margin-top:-0.12em;">―</span></span>';
+    } else if(t.n === "1^"){
+      div.innerHTML = (i+1) + ': <span style="display:inline-flex; flex-direction:column; align-items:center; line-height:1; vertical-align:middle;"><span style="font-size:0.7em; margin-bottom:-0.12em;">―</span><span>1</span></span>';
+    } else {
+      div.textContent = (i+1) + ": " + t.n;
+    }
+
+    answerRow.appendChild(div);
+  });
+}
+
+function checkAnswer(){
+
+  if(answer.length < target.length){
+    result.textContent = "Du har inte matat in alla toner ännu.";
+    return;
+  }
+
+  let correct = 0;
+
+  for(let i=0;i<target.length;i++){
+
+    if(answer[i].n === target[i].n){
+      correct++;
+    }
+  }
+
+  if(correct === target.length){
+
+    result.textContent = "Rätt! Du hittade hela melodin.";
+
+  } else {
+
+    result.textContent =
+      correct + " av " + target.length +
+      " rätt. Rätt svar: " +
+      target.map(x=>x.n).join(" – ");
+  }
+}
+
+
+
+function buildGrid(){
+
+  grid.innerHTML = "";
+
+  const tones = currentTones();
+
+  // riktiga trappsteg:
+  // varje tonplats ligger ett steg högre än föregående
+  tones.forEach((t, i)=>{
+
+    const btn = document.createElement("button");
+
+    btn.className = "numBtn";
+
+
+    if(t.n === "7_"){
+      btn.innerHTML = '<span style="display:inline-flex; flex-direction:column; align-items:center; line-height:1;"><span>7</span><span style="font-size:0.7em; margin-top:-0.12em;">―</span></span>';
+    } else if(t.n === "1^"){
+      btn.innerHTML = '<span style="display:inline-flex; flex-direction:column; align-items:center; line-height:1;"><span style="font-size:0.7em; margin-bottom:-0.12em;">―</span><span>1</span></span>';
+    } else {
+      btn.textContent = t.n;
+    }
+
+    const stepHeight = parseFloat(getComputedStyle(grid).getPropertyValue("--step-rise")) || 22;
+
+    // låg 7 längst ned -> hög 1 längst upp
+    // vänster till höger = stigande uppåt
+    const vertical = (tones.length - 1 - i) * stepHeight;
+
+    btn.style.transform = `translateY(${vertical}px)`;
+
+    btn.addEventListener("click",()=>addAnswer(t));
+
+    grid.appendChild(btn);
+  });
+}
+
+document.getElementById("newMelody")
+  .addEventListener("click",makeMelody);
+
+document.getElementById("playMelody")
+  .addEventListener("click",()=>playSequence(target));
+
+document.getElementById("playAnswer")
+  .addEventListener("click",()=>playSequence(answer));
+
+document.getElementById("check")
+  .addEventListener("click",checkAnswer);
+
+
+
+
+
+document.getElementById("clear")
+  .addEventListener("click",()=>{
+
+    answer = [];
+  
+    drawAnswer();
+
+    result.textContent = "Svar rensat.";
+  });
+
+
+document.getElementById("playTonic")
+  .addEventListener("click",()=>{
+    playTone(currentTones()[1].f,0.7);
+  });
+
+
+tonicSelect.addEventListener("change",()=>{
+  answer = [];
+  target = [];
+  drawAnswer();
+  
+document.getElementById("randomTonic")
+  .addEventListener("click",()=>{
+
+    const opts = Array.from(tonicSelect.options);
+
+    const idx = Math.floor(Math.random()*opts.length);
+
+    tonicSelect.selectedIndex = idx;
+
+    answer = [];
+    target = [];
+  
+    drawAnswer();
+    
+
+
+
+
+
+
+
+
+
+
+
+
+buildGrid();
+
+    result.textContent =
+      "Ny grundton: " + opts[idx].text;
+
+    // spela nya grundtonen direkt
+    playTone(currentTones()[1].f,0.75);
+  });
+
+
+
+
+
+
+
+
+
+
+
+buildGrid();
+  result.textContent = "Grundton ändrad.";
+  
+});
+
+tempoSlider.addEventListener("input",()=>{
+  tempoValue.textContent = tempoSlider.value;
+});
+
+
+document.getElementById("randomTonic")
+  .addEventListener("click",()=>{
+
+    const opts = Array.from(tonicSelect.options);
+
+    const idx = Math.floor(Math.random()*opts.length);
+
+    tonicSelect.selectedIndex = idx;
+
+    answer = [];
+    target = [];
+  
+    drawAnswer();
+    
+
+
+
+
+
+
+
+
+buildGrid();
+
+    result.textContent =
+      "Ny grundton: " + opts[idx].text;
+
+    // spela nya grundtonen direkt
+    playTone(currentTones()[1].f,0.75);
+  });
+
+
+
+
+
+
+
+
+
+
+
+buildGrid();
+
+
+
+
+
+</script>
+
+</body>
+</html>
